@@ -1,5 +1,7 @@
 const usermodel = require("../models/userModels");
 const bcrypt = require("bcryptjs");
+const TOKEN = require("jsonwebtoken");
+const SECRET_KEY = process.env.SECRET_KEY;
 
 const userSignup = async (req, res) => {
   try {
@@ -55,7 +57,19 @@ const userLogin = async (req, res) => {
                 status: false,
               });
             }
-            res.status(200).send({ message: "Login successful", status: true });
+            const generatedToken = await TOKEN.sign(
+              { email },
+              `${SECRET_KEY}`,
+              {
+                expiresIn: "1d",
+              }
+            );
+
+            res.status(200).send({
+              message: "Login successful",
+              status: true,
+              token: generatedToken,
+            });
           } catch (error) {
             console.log(error);
           }
@@ -69,4 +83,23 @@ const userLogin = async (req, res) => {
   }
 };
 
-module.exports = { userSignup, userLogin };
+const verifyToken = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization.split(" ")[1];
+    if (!token) {
+      res.status(401).send({ message: "token is required", status: false });
+    } else {
+      const verified = await TOKEN.verify(token, `${SECRET_KEY}`);
+      if (verified) {
+        res
+          .status(200)
+          .send({ message: "user verified successfully", status: true });
+      }
+    }
+  } catch (error) {
+    next(401, error);
+    console.log(error);
+  }
+};
+
+module.exports = { userSignup, userLogin, verifyToken };

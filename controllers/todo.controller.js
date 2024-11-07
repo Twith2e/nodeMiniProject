@@ -29,7 +29,6 @@ const getTodo = async (req, res) => {
         status: true,
         data: tasks,
       });
-      console.log(tasks);
     } else {
       res.status(400).send({
         message: "No tasks found",

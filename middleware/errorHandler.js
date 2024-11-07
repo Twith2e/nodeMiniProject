@@ -18,6 +18,11 @@ const errorHandler = (error, req, res, next) => {
       message: "User is not authorized to perform this action",
       status: false,
     });
+  } else if (error.name === "JsonWebTokenError") {
+    return res.status(401).send({
+      message: "Invalid token. Please login again",
+      status: false,
+    });
   } else {
     return res
       .status(500)
